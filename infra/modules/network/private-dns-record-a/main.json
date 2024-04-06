@@ -1,0 +1,49 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "metadata": {
+    "_generator": {
+      "name": "bicep",
+      "version": "0.26.54.24096",
+      "templateHash": "17902247494205851030"
+    },
+    "name": "Private DNS A record",
+    "description": "Creates an A record in a private DNS zone.",
+    "owner": "ahelland"
+  },
+  "parameters": {
+    "recordName": {
+      "type": "string",
+      "metadata": {
+        "description": "The name of the DNS record to be created.  The name is relative to the zone, not the FQDN."
+      }
+    },
+    "ipAddress": {
+      "type": "string",
+      "metadata": {
+        "description": "IP address"
+      }
+    },
+    "zone": {
+      "type": "string",
+      "metadata": {
+        "description": "Name of DNS zone"
+      }
+    }
+  },
+  "resources": [
+    {
+      "type": "Microsoft.Network/privateDnsZones/A",
+      "apiVersion": "2020-06-01",
+      "name": "[format('{0}/{1}', parameters('zone'), parameters('recordName'))]",
+      "properties": {
+        "ttl": 3600,
+        "aRecords": [
+          {
+            "ipv4Address": "[parameters('ipAddress')]"
+          }
+        ]
+      }
+    }
+  ]
+}

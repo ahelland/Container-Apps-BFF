@@ -1,0 +1,99 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "languageVersion": "2.0",
+  "contentVersion": "1.0.0.0",
+  "metadata": {
+    "_generator": {
+      "name": "bicep",
+      "version": "0.26.54.24096",
+      "templateHash": "6794466138096414590"
+    },
+    "name": "Private Endpoint",
+    "description": "Private Endpoint",
+    "owner": "ahelland"
+  },
+  "parameters": {
+    "location": {
+      "type": "string",
+      "defaultValue": "[resourceGroup().location]",
+      "metadata": {
+        "description": "Specifies the location for resources."
+      }
+    },
+    "resourceTags": {
+      "type": "object",
+      "defaultValue": {},
+      "metadata": {
+        "description": "Tags retrieved from parameter file."
+      }
+    },
+    "peName": {
+      "type": "string",
+      "metadata": {
+        "description": "Name of the Private Endpoint."
+      }
+    },
+    "serviceConnectionGroupIds": {
+      "type": "string",
+      "metadata": {
+        "description": "String array - \"foo, bar\""
+      }
+    },
+    "snetId": {
+      "type": "string",
+      "nullable": true,
+      "metadata": {
+        "description": "Subnet to attach private endpoint to."
+      }
+    },
+    "serviceConnectionId": {
+      "type": "string",
+      "metadata": {
+        "description": "The connection id for the private link service."
+      }
+    }
+  },
+  "resources": {
+    "pe": {
+      "type": "Microsoft.Network/privateEndpoints",
+      "apiVersion": "2023-09-01",
+      "name": "[parameters('peName')]",
+      "location": "[parameters('location')]",
+      "tags": "[parameters('resourceTags')]",
+      "properties": {
+        "manualPrivateLinkServiceConnections": [],
+        "ipConfigurations": [],
+        "subnet": {
+          "id": "[parameters('snetId')]"
+        },
+        "privateLinkServiceConnections": [
+          {
+            "name": "[parameters('peName')]",
+            "properties": {
+              "privateLinkServiceId": "[parameters('serviceConnectionId')]",
+              "groupIds": [
+                "[parameters('serviceConnectionGroupIds')]"
+              ]
+            }
+          }
+        ]
+      }
+    }
+  },
+  "outputs": {
+    "ip": {
+      "type": "string",
+      "metadata": {
+        "description": "IP Address of Private Endpoint"
+      },
+      "value": "[reference('pe').customDnsConfigs[0].ipAddresses[0]]"
+    },
+    "fqdn": {
+      "type": "string",
+      "metadata": {
+        "description": "FQDN (public zone) of Private Endpoint"
+      },
+      "value": "[reference('pe').customDnsConfigs[0].fqdn]"
+    }
+  }
+}

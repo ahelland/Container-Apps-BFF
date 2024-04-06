@@ -1,0 +1,109 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "metadata": {
+    "_generator": {
+      "name": "bicep",
+      "version": "0.26.54.24096",
+      "templateHash": "13009888590072889064"
+    },
+    "name": "Container App Environment",
+    "description": "Deploys a Container Environment in Azure.",
+    "owner": "ahelland"
+  },
+  "parameters": {
+    "environmentName": {
+      "type": "string",
+      "metadata": {
+        "description": "Name of Container Environment"
+      }
+    },
+    "location": {
+      "type": "string",
+      "metadata": {
+        "description": "Location for Container Environment"
+      }
+    },
+    "resourceTags": {
+      "type": "object",
+      "defaultValue": {},
+      "metadata": {
+        "description": "Tags retrieved from parameter file."
+      }
+    },
+    "vnetInternal": {
+      "type": "bool",
+      "defaultValue": true,
+      "metadata": {
+        "description": "Should the Container Environment be connected to a custom virtual network? Enabling this also requires a valid value for snetId."
+      }
+    },
+    "snetId": {
+      "type": "string",
+      "metadata": {
+        "description": "If vnet integration is enabled which subnet should the container environment be connected to?"
+      }
+    }
+  },
+  "resources": [
+    {
+      "type": "Microsoft.OperationalInsights/workspaces",
+      "apiVersion": "2023-09-01",
+      "name": "[format('log-analytics-{0}', parameters('environmentName'))]",
+      "location": "[parameters('location')]",
+      "tags": "[parameters('resourceTags')]",
+      "properties": {
+        "retentionInDays": 30,
+        "features": {
+          "searchVersion": 1
+        },
+        "sku": {
+          "name": "PerGB2018"
+        }
+      }
+    },
+    {
+      "type": "Microsoft.App/managedEnvironments",
+      "apiVersion": "2023-11-02-preview",
+      "name": "[parameters('environmentName')]",
+      "location": "[parameters('location')]",
+      "tags": "[parameters('resourceTags')]",
+      "properties": {
+        "appLogsConfiguration": {
+          "destination": "log-analytics",
+          "logAnalyticsConfiguration": {
+            "customerId": "[reference(resourceId('Microsoft.OperationalInsights/workspaces', format('log-analytics-{0}', parameters('environmentName'))), '2023-09-01').customerId]",
+            "sharedKey": "[listKeys(resourceId('Microsoft.OperationalInsights/workspaces', format('log-analytics-{0}', parameters('environmentName'))), '2023-09-01').primarySharedKey]"
+          }
+        },
+        "vnetConfiguration": {
+          "internal": "[if(parameters('vnetInternal'), true(), false())]",
+          "infrastructureSubnetId": "[parameters('snetId')]"
+        },
+        "peerAuthentication": {
+          "mtls": {
+            "enabled": true
+          }
+        },
+        "workloadProfiles": [
+          {
+            "workloadProfileType": "Consumption",
+            "name": "Consumption"
+          }
+        ]
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.OperationalInsights/workspaces', format('log-analytics-{0}', parameters('environmentName')))]"
+      ]
+    }
+  ],
+  "outputs": {
+    "defaultDomain": {
+      "type": "string",
+      "metadata": {
+        "description": "The default domain of the cluster."
+      },
+      "value": "[reference(resourceId('Microsoft.App/managedEnvironments', parameters('environmentName')), '2023-11-02-preview').defaultDomain]"
+    }
+  }
+}

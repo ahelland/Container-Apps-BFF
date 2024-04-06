@@ -1,0 +1,60 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "metadata": {
+    "_generator": {
+      "name": "bicep",
+      "version": "0.26.54.24096",
+      "templateHash": "11606277426678104863"
+    },
+    "name": "User Managed Identity",
+    "description": "User Managed Identity",
+    "owner": "ahelland"
+  },
+  "parameters": {
+    "location": {
+      "type": "string",
+      "metadata": {
+        "description": "Location"
+      }
+    },
+    "resourceTags": {
+      "type": "object",
+      "defaultValue": {},
+      "metadata": {
+        "description": "Tags retrieved from parameter file."
+      }
+    },
+    "miname": {
+      "type": "string",
+      "metadata": {
+        "description": "Name of managed identity."
+      }
+    }
+  },
+  "resources": [
+    {
+      "type": "Microsoft.ManagedIdentity/userAssignedIdentities",
+      "apiVersion": "2023-07-31-preview",
+      "name": "[parameters('miname')]",
+      "location": "[parameters('location')]",
+      "tags": "[parameters('resourceTags')]"
+    }
+  ],
+  "outputs": {
+    "managedIdentityPrincipal": {
+      "type": "string",
+      "metadata": {
+        "description": "Principal of the managed identity."
+      },
+      "value": "[reference(resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', parameters('miname')), '2023-07-31-preview').principalId]"
+    },
+    "id": {
+      "type": "string",
+      "metadata": {
+        "description": "ObjectId of the managed identity."
+      },
+      "value": "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', parameters('miname'))]"
+    }
+  }
+}

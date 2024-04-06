@@ -1,0 +1,120 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "metadata": {
+    "_generator": {
+      "name": "bicep",
+      "version": "0.26.54.24096",
+      "templateHash": "8811471716162216438"
+    },
+    "name": "Azure Container Registry",
+    "description": "Deploys an Azure Container Registry.",
+    "owner": "ahelland"
+  },
+  "parameters": {
+    "location": {
+      "type": "string",
+      "metadata": {
+        "description": "The location to deploy to."
+      }
+    },
+    "resourceTags": {
+      "type": "object",
+      "defaultValue": {},
+      "metadata": {
+        "description": "Tags retrieved from parameter file."
+      }
+    },
+    "acrName": {
+      "type": "string",
+      "minLength": 5,
+      "maxLength": 50,
+      "metadata": {
+        "description": "Provide a globally unique name for your Azure Container Registry"
+      }
+    },
+    "acrSku": {
+      "type": "string",
+      "metadata": {
+        "description": "Provide a tier for your Azure Container Registry."
+      }
+    },
+    "adminUserEnabled": {
+      "type": "bool",
+      "defaultValue": false,
+      "metadata": {
+        "description": "Should the admin user be enabled (for non-managed identity access)."
+      }
+    },
+    "anonymousPullEnabled": {
+      "type": "bool",
+      "metadata": {
+        "description": "Allow anonymous pull (requires Premium SKU)."
+      }
+    },
+    "managedIdentity": {
+      "type": "string",
+      "metadata": {
+        "description": "Managed identity type for the registry."
+      }
+    },
+    "publicNetworkAccess": {
+      "type": "string",
+      "allowedValues": [
+        "Enabled",
+        "Disabled"
+      ],
+      "metadata": {
+        "description": "Should the endpoint be publicly available?"
+      }
+    }
+  },
+  "resources": [
+    {
+      "type": "Microsoft.ContainerRegistry/registries",
+      "apiVersion": "2023-11-01-preview",
+      "name": "[parameters('acrName')]",
+      "location": "[parameters('location')]",
+      "tags": "[parameters('resourceTags')]",
+      "identity": {
+        "type": "[parameters('managedIdentity')]"
+      },
+      "sku": {
+        "name": "[parameters('acrSku')]"
+      },
+      "properties": {
+        "adminUserEnabled": "[parameters('adminUserEnabled')]",
+        "anonymousPullEnabled": "[parameters('anonymousPullEnabled')]",
+        "dataEndpointEnabled": false,
+        "encryption": {
+          "status": "disabled"
+        },
+        "networkRuleBypassOptions": "AzureServices",
+        "publicNetworkAccess": "[parameters('publicNetworkAccess')]"
+      }
+    }
+  ],
+  "outputs": {
+    "id": {
+      "type": "string",
+      "metadata": {
+        "description": "The id of the container registry."
+      },
+      "value": "[resourceId('Microsoft.ContainerRegistry/registries', parameters('acrName'))]"
+    },
+    "acrName": {
+      "type": "string",
+      "metadata": {
+        "description": "Generated name of container registry."
+      },
+      "value": "[parameters('acrName')]"
+    },
+    "loginServer": {
+      "type": "string",
+      "metadata": {
+        "description": "Output the login server property."
+      },
+      "value": "[reference(resourceId('Microsoft.ContainerRegistry/registries', parameters('acrName')), '2023-11-01-preview').loginServer]"
+    }
+  }
+}

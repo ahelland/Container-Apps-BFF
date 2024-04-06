@@ -1,0 +1,161 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "languageVersion": "2.0",
+  "contentVersion": "1.0.0.0",
+  "metadata": {
+    "_generator": {
+      "name": "bicep",
+      "version": "0.26.54.24096",
+      "templateHash": "12428974193871200527"
+    },
+    "name": "Container App Docker Hub",
+    "description": "Container App Docker Hub",
+    "owner": "ahelland"
+  },
+  "parameters": {
+    "location": {
+      "type": "string",
+      "defaultValue": "[resourceGroup().location]",
+      "metadata": {
+        "description": "Specifies the location for resources."
+      }
+    },
+    "resourceTags": {
+      "type": "object",
+      "defaultValue": {},
+      "metadata": {
+        "description": "Tags retrieved from parameter file."
+      }
+    },
+    "name": {
+      "type": "string",
+      "metadata": {
+        "description": "Name of container app."
+      }
+    },
+    "containerAppEnvironmentId": {
+      "type": "string",
+      "metadata": {
+        "description": "The id of the container environment to deploy app to."
+      }
+    },
+    "containerImage": {
+      "type": "string",
+      "defaultValue": "mcr.microsoft.com/k8se/quickstart:latest",
+      "metadata": {
+        "description": "Image of container. Defaults to mcr quickstart."
+      }
+    },
+    "containerName": {
+      "type": "string",
+      "metadata": {
+        "description": "Name of container."
+      }
+    },
+    "targetPort": {
+      "type": "int",
+      "metadata": {
+        "description": "The port exposed on the target container."
+      }
+    },
+    "exposedPort": {
+      "type": "int",
+      "nullable": true,
+      "metadata": {
+        "description": "The port exposed on ingress."
+      }
+    },
+    "transport": {
+      "type": "string",
+      "defaultValue": "http",
+      "allowedValues": [
+        "http",
+        "tcp"
+      ],
+      "metadata": {
+        "description": "Which transport protocol to expose."
+      }
+    },
+    "minReplicas": {
+      "type": "int",
+      "defaultValue": 0,
+      "metadata": {
+        "description": "Minimum number of replicas."
+      }
+    },
+    "maxReplicas": {
+      "type": "int",
+      "defaultValue": 10,
+      "metadata": {
+        "description": "Maximum number of replicas."
+      }
+    },
+    "envVars": {
+      "type": "array",
+      "defaultValue": [],
+      "metadata": {
+        "description": "Environment variables."
+      }
+    }
+  },
+  "resources": {
+    "containerApp": {
+      "type": "Microsoft.App/containerApps",
+      "apiVersion": "2023-11-02-preview",
+      "name": "[parameters('name')]",
+      "location": "[parameters('location')]",
+      "tags": "[parameters('resourceTags')]",
+      "properties": {
+        "managedEnvironmentId": "[parameters('containerAppEnvironmentId')]",
+        "environmentId": "[parameters('containerAppEnvironmentId')]",
+        "workloadProfileName": "Consumption",
+        "configuration": {
+          "activeRevisionsMode": "Single",
+          "ingress": {
+            "external": true,
+            "targetPort": "[parameters('targetPort')]",
+            "exposedPort": "[parameters('exposedPort')]",
+            "transport": "[parameters('transport')]",
+            "traffic": [
+              {
+                "weight": 100,
+                "latestRevision": true
+              }
+            ],
+            "allowInsecure": false
+          }
+        },
+        "template": {
+          "revisionSuffix": "",
+          "containers": [
+            {
+              "image": "[parameters('containerImage')]",
+              "name": "[parameters('containerName')]",
+              "env": "[parameters('envVars')]",
+              "resources": {
+                "cpu": "[json('0.25')]",
+                "memory": "0.5Gi"
+              }
+            }
+          ],
+          "scale": {
+            "minReplicas": "[parameters('minReplicas')]",
+            "maxReplicas": "[parameters('maxReplicas')]"
+          }
+        }
+      },
+      "identity": {
+        "type": "None"
+      }
+    }
+  },
+  "outputs": {
+    "name": {
+      "type": "string",
+      "metadata": {
+        "description": "Name of the container app."
+      },
+      "value": "[parameters('name')]"
+    }
+  }
+}

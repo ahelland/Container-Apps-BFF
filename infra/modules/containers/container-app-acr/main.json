@@ -1,0 +1,208 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "languageVersion": "2.0",
+  "contentVersion": "1.0.0.0",
+  "metadata": {
+    "_generator": {
+      "name": "bicep",
+      "version": "0.26.54.24096",
+      "templateHash": "17082757674407951356"
+    },
+    "name": "Container App ACR",
+    "description": "Container App ACR",
+    "owner": "ahelland"
+  },
+  "parameters": {
+    "location": {
+      "type": "string",
+      "defaultValue": "[resourceGroup().location]",
+      "metadata": {
+        "description": "Specifies the location for resources."
+      }
+    },
+    "resourceTags": {
+      "type": "object",
+      "defaultValue": {},
+      "metadata": {
+        "description": "Tags retrieved from parameter file."
+      }
+    },
+    "name": {
+      "type": "string",
+      "metadata": {
+        "description": "Name of container app."
+      }
+    },
+    "containerAppEnvironmentId": {
+      "type": "string",
+      "metadata": {
+        "description": "The id of the container environment to deploy app to."
+      }
+    },
+    "containerImage": {
+      "type": "string",
+      "defaultValue": "mcr.microsoft.com/k8se/quickstart:latest",
+      "metadata": {
+        "description": "Image of container. Defaults to mcr quickstart."
+      }
+    },
+    "targetPort": {
+      "type": "int",
+      "metadata": {
+        "description": "The port exposed on the target container."
+      }
+    },
+    "transport": {
+      "type": "string",
+      "defaultValue": "Auto",
+      "allowedValues": [
+        "Auto",
+        "http",
+        "http2",
+        "tcp"
+      ],
+      "metadata": {
+        "description": "Which transport protocol to expose."
+      }
+    },
+    "externalIngress": {
+      "type": "bool",
+      "defaultValue": true,
+      "metadata": {
+        "description": "Enable external ingress."
+      }
+    },
+    "minReplicas": {
+      "type": "int",
+      "defaultValue": 0,
+      "metadata": {
+        "description": "Minimum number of replicas."
+      }
+    },
+    "maxReplicas": {
+      "type": "int",
+      "defaultValue": 10,
+      "metadata": {
+        "description": "Maximum number of replicas."
+      }
+    },
+    "containerName": {
+      "type": "string",
+      "defaultValue": "simple-hello-world-container",
+      "metadata": {
+        "description": "Name of container."
+      }
+    },
+    "containerRegistry": {
+      "type": "string",
+      "metadata": {
+        "description": "Registry to use for pulling images from. (Assumed to be in the form contosoacr.azurecr.io)"
+      }
+    },
+    "identityName": {
+      "type": "string",
+      "metadata": {
+        "description": "Id of the user-assigned managed identity to use."
+      }
+    },
+    "envVars": {
+      "type": "array",
+      "defaultValue": [],
+      "metadata": {
+        "description": "Environment variables."
+      }
+    },
+    "serviceId": {
+      "type": "string",
+      "nullable": true,
+      "metadata": {
+        "description": "Container App Service (Redis) to bind to."
+      }
+    }
+  },
+  "resources": {
+    "mi": {
+      "existing": true,
+      "type": "Microsoft.ManagedIdentity/userAssignedIdentities",
+      "apiVersion": "2023-07-31-preview",
+      "name": "[parameters('identityName')]"
+    },
+    "containerApp": {
+      "type": "Microsoft.App/containerApps",
+      "apiVersion": "2023-11-02-preview",
+      "name": "[parameters('name')]",
+      "location": "[parameters('location')]",
+      "tags": "[parameters('resourceTags')]",
+      "identity": {
+        "type": "SystemAssigned,UserAssigned",
+        "userAssignedIdentities": {
+          "[format('{0}', resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', parameters('identityName')))]": {}
+        }
+      },
+      "properties": {
+        "managedEnvironmentId": "[parameters('containerAppEnvironmentId')]",
+        "environmentId": "[parameters('containerAppEnvironmentId')]",
+        "workloadProfileName": "Consumption",
+        "configuration": {
+          "registries": [
+            {
+              "identity": "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', parameters('identityName'))]",
+              "server": "[parameters('containerRegistry')]"
+            }
+          ],
+          "activeRevisionsMode": "Single",
+          "ingress": {
+            "external": "[parameters('externalIngress')]",
+            "targetPort": "[parameters('targetPort')]",
+            "exposedPort": 0,
+            "transport": "[parameters('transport')]",
+            "traffic": [
+              {
+                "weight": 100,
+                "latestRevision": true
+              }
+            ],
+            "allowInsecure": false
+          }
+        },
+        "template": {
+          "serviceBinds": "[if(not(empty(parameters('serviceId'))), createArray(createObject('serviceId', parameters('serviceId'), 'name', 'redis')), createArray())]",
+          "containers": [
+            {
+              "image": "[parameters('containerImage')]",
+              "name": "[parameters('containerName')]",
+              "env": "[parameters('envVars')]",
+              "resources": {
+                "cpu": "[json('0.25')]",
+                "memory": "0.5Gi"
+              }
+            }
+          ],
+          "scale": {
+            "minReplicas": "[parameters('minReplicas')]",
+            "maxReplicas": "[parameters('maxReplicas')]"
+          }
+        }
+      },
+      "dependsOn": [
+        "mi"
+      ]
+    }
+  },
+  "outputs": {
+    "name": {
+      "type": "string",
+      "metadata": {
+        "description": "Name of the container app."
+      },
+      "value": "[parameters('name')]"
+    },
+    "principalId": {
+      "type": "string",
+      "metadata": {
+        "description": "The principalId for the system managed identity of the app."
+      },
+      "value": "[reference('containerApp', '2023-11-02-preview', 'full').identity.principalId]"
+    }
+  }
+}

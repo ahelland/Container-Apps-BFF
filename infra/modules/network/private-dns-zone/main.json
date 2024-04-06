@@ -1,0 +1,75 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "languageVersion": "2.0",
+  "contentVersion": "1.0.0.0",
+  "metadata": {
+    "_generator": {
+      "name": "bicep",
+      "version": "0.26.54.24096",
+      "templateHash": "14066683215362380303"
+    },
+    "name": "Private DNS Zone",
+    "description": "A module for generating an empty Private DNS Zone.",
+    "owner": "ahelland"
+  },
+  "parameters": {
+    "resourceTags": {
+      "type": "object",
+      "defaultValue": {},
+      "metadata": {
+        "description": "Tags retrieved from parameter file."
+      }
+    },
+    "zoneName": {
+      "type": "string",
+      "metadata": {
+        "description": "The name of the DNS zone to be created.  Must have at least 2 segments, e.g. hostname.org"
+      }
+    },
+    "registrationEnabled": {
+      "type": "bool",
+      "metadata": {
+        "description": "Enable auto-registration for virtual network."
+      }
+    },
+    "vnetName": {
+      "type": "string",
+      "nullable": true,
+      "metadata": {
+        "description": "The name of vnet to connect the zone to (for naming of link). Null if registrationEnabled is false."
+      }
+    },
+    "vnetId": {
+      "type": "string",
+      "nullable": true,
+      "metadata": {
+        "description": "Vnet to link up with. Null if registrationEnabled is false."
+      }
+    }
+  },
+  "resources": {
+    "zone::vnet": {
+      "condition": "[not(empty(parameters('vnetName')))]",
+      "type": "Microsoft.Network/privateDnsZones/virtualNetworkLinks",
+      "apiVersion": "2020-06-01",
+      "name": "[format('{0}/{1}', parameters('zoneName'), format('{0}-link', parameters('vnetName')))]",
+      "location": "global",
+      "properties": {
+        "registrationEnabled": "[parameters('registrationEnabled')]",
+        "virtualNetwork": {
+          "id": "[parameters('vnetId')]"
+        }
+      },
+      "dependsOn": [
+        "zone"
+      ]
+    },
+    "zone": {
+      "type": "Microsoft.Network/privateDnsZones",
+      "apiVersion": "2020-06-01",
+      "name": "[parameters('zoneName')]",
+      "location": "global",
+      "tags": "[parameters('resourceTags')]"
+    }
+  }
+}
