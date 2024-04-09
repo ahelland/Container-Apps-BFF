@@ -1,8 +1,8 @@
 using './main.bicep'
 
-param resourceTags = {            
+param resourceTags = {
   IaC: 'Bicep'
   Source: 'GitHub'
 }
-        
+
 param location = 'westeurope'
