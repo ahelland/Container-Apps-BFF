@@ -1,0 +1,52 @@
+#!meta
+
+{"kernelInfo":{"defaultKernelName":"csharp","items":[{"aliases":[],"name":"csharp"},{"aliases":[],"languageName":"pwsh","name":"pwsh"}]}}
+
+#!markdown
+
+# ACA BFF Azure Infrastructure Deployment Playbook
+
+#!markdown
+
+### Level-2
+
+#!pwsh
+
+# A what-if to point out errors not caught by the linter
+# az deployment sub what-if --location westeurope --name level-2 --template-file .\level-2\main.bicep --parameters .\level-2\main.bicepparam
+
+# A stand-alone deployment
+# az deployment sub create  --location westeurope --name bff-level-2 --template-file .\level-2\main.bicep --parameters .\level-2\main.bicepparam
+
+# A deployment stack
+az stack sub create --name bff-level-2 --location westeurope --template-file .\level-2\main.bicep --parameters .\level-2\main.bicepparam --deny-settings-mode none
+
+#!markdown
+
+### Level-3
+
+#!pwsh
+
+# A what-if to point out errors not caught by the linter
+# az deployment sub what-if --location westeurope --name level-3 --template-file .\level-3\main.bicep --parameters .\level-3\main.bicepparam
+
+# A stand-alone deployment
+# az deployment sub create  --location westeurope --name bff-level-3 --template-file .\level-3\main.bicep --parameters .\level-3\main.bicepparam
+
+# A deployment stack
+az stack sub create --name bff-level-3 --location westeurope --template-file .\level-3\main.bicep --parameters .\level-3\main.bicepparam --deny-settings-mode none
+
+#!markdown
+
+### Level-4
+
+#!pwsh
+
+# A what-if to point out errors not caught by the linter
+# az deployment sub what-if --location westeurope --name level-4 --template-file .\level-4\main.bicep --parameters .\level-4\main.bicepparam
+
+# A stand-alone deployment
+# az deployment sub create  --location westeurope --name bff-level-4 --template-file .\level-4\main.bicep --parameters .\level-4\main.bicepparam
+
+# A deployment stack
+az stack sub create --name bff-level-4 --location westeurope --template-file .\level-4\main.bicep --parameters .\level-4\main.bicepparam --deny-settings-mode none
