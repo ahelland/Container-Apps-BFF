@@ -1,0 +1,28 @@
+﻿@page "/counter"
+@rendermode InteractiveAuto
+@using Microsoft.AspNetCore.Authorization
+
+<PageTitle>Counter</PageTitle>
+
+<h1>Counter</h1>
+
+<AuthorizeView>
+    <Authorized>
+        <div role="status" style="padding-bottom: 1em;">
+            Current count: <FluentBadge Appearance="Appearance.Neutral">@currentCount</FluentBadge>
+        </div>
+        <FluentButton Appearance="Appearance.Accent" @onclick="IncrementCount">Click me</FluentButton>
+    </Authorized>
+    <NotAuthorized>
+        <p>Only users who are logged in can count.</p>
+    </NotAuthorized>
+</AuthorizeView>
+
+@code {
+    private int currentCount = 0;
+
+    private void IncrementCount()
+    {
+        currentCount++;
+    }
+}

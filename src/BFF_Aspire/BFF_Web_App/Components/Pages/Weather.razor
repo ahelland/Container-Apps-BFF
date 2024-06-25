@@ -1,0 +1,38 @@
+﻿@page "/weather"
+@using Microsoft.AspNetCore.Authorization
+@using BFF_Web_App.Client.Weather;
+@attribute [Authorize]
+@attribute [StreamRendering]
+@inject IWeatherForecaster WeatherForecaster
+
+<PageTitle>Weather</PageTitle>
+
+<h1>Weather</h1>
+
+<p>This component demonstrates showing data.</p>
+
+@if (forecasts == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <!-- This page is rendered in SSR mode, so the FluentDataGrid component does not offer any interactivity (like sorting). -->
+    <FluentDataGrid Id="weathergrid" Items="@items" GridTemplateColumns="1fr 1fr 1fr 2fr" TGridItem="WeatherForecast">
+        <PropertyColumn Title="Date" Property="@(c => c!.Date)" Align="Align.Start"/>
+        <PropertyColumn Title="Temp. (C)" Property="@(c => c!.TemperatureC)" Align="Align.Center"/>
+        <PropertyColumn Title="Temp. (F)" Property="@(c => c!.TemperatureF)" Align="Align.Center"/>
+        <PropertyColumn Title="Summary" Property="@(c => c!.Summary)" Align="Align.End"/>
+    </FluentDataGrid>
+}
+
+@code {
+    private IQueryable<WeatherForecast>? items;
+    private IEnumerable<WeatherForecast>? forecasts;
+
+    protected override async Task OnInitializedAsync()
+    {
+        forecasts = await WeatherForecaster.GetWeatherForecastAsync();
+        items = Queryable.AsQueryable(forecasts);
+    }
+}

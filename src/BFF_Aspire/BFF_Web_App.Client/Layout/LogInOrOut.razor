@@ -1,0 +1,45 @@
+@implements IDisposable
+
+@inject NavigationManager NavigationManager
+
+<div class="nav-item px-3">
+    <AuthorizeView>
+        <Authorized>
+            <form action="authentication/logout" method="post">
+                <AntiforgeryToken />
+                @* Use currentUrl to redirect back to same page *@
+                @* <input type="hidden" name="ReturnUrl" value="@currentUrl" /> *@
+                <input type="hidden" name="ReturnUrl" value="/" />
+                <FluentButton IconStart="@(new Icons.Regular.Size20.Key())" IconColor="Color.Accent"
+                    Type="ButtonType.Submit"
+                    Title="Logout">
+                    Logout @context.User.Identity?.Name
+                </FluentButton>
+            </form>
+        </Authorized>
+        <NotAuthorized>
+            <FluentNavLink Href="authentication/login" Icon="@(new Icons.Regular.Size20.Key())" IconColor="Color.Accent">Login</FluentNavLink>
+        </NotAuthorized>
+    </AuthorizeView>
+</div>
+
+@code {
+    private string? currentUrl;
+
+    protected override void OnInitialized()
+    {
+        currentUrl = NavigationManager.ToBaseRelativePath(NavigationManager.Uri);
+        NavigationManager.LocationChanged += OnLocationChanged;
+    }
+
+    private void OnLocationChanged(object? sender, LocationChangedEventArgs e)
+    {
+        currentUrl = NavigationManager.ToBaseRelativePath(e.Location);
+        StateHasChanged();
+    }
+
+    public void Dispose()
+    {
+        NavigationManager.LocationChanged -= OnLocationChanged;
+    }
+}
