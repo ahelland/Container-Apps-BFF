@@ -1,0 +1,10 @@
+using './weatherapi.module.bicep'
+
+param app_outputs_clientid = '{{ .Env.APP_CLIENTID }}'
+param outputs_azure_container_apps_environment_id = '{{ .Env.AZURE_CONTAINER_APPS_ENVIRONMENT_ID }}'
+param outputs_azure_container_registry_endpoint = '{{ .Env.AZURE_CONTAINER_REGISTRY_ENDPOINT }}'
+param outputs_azure_container_registry_managed_identity_id = '{{ .Env.AZURE_CONTAINER_REGISTRY_MANAGED_IDENTITY_ID }}'
+param outputs_managed_identity_client_id = '{{ .Env.MANAGED_IDENTITY_CLIENT_ID }}'
+param tenantid_value = '{{ parameter "TenantId" }}'
+param weatherapi_containerimage = '{{ .Image }}'
+param weatherapi_containerport = '{{ targetPortOrDefault 8080 }}'
